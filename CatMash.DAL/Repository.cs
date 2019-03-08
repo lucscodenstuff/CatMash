@@ -24,7 +24,7 @@ namespace CatMash.DAL
             _configuration = configuration;
         }
 
-        public async Task<Response> GetOneAsync<Parameters, Response>(Parameters parameters) where Parameters : BaseStoredProcedureParameters
+        public async Task<Response> GetOneAsync<Parameters, Response>(Parameters parameters) where Parameters : IBaseStoredProcedureParameters
         {
             var connection = new SqlConnection(_configuration.GetConnectionString("Connection"));
             var dynamicParameters = new DynamicParameters();
@@ -51,10 +51,9 @@ namespace CatMash.DAL
                 Trace.TraceError($"Error calling {storedProcedure} : \r\n" + e.ToString());
                 throw;
             }
-
         }
 
-        private DynamicParameters CreateParameters<T>(T parameters, out string storedProcedure) where T : BaseStoredProcedureParameters
+        private DynamicParameters CreateParameters<T>(T parameters, out string storedProcedure) where T : IBaseStoredProcedureParameters
         {
             var dynamicParameters = new DynamicParameters();
             storedProcedure = null;
