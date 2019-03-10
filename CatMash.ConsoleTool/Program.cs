@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
@@ -20,6 +21,7 @@ namespace CatMash.ConsoleTool
         {
             var cats = DesirializeCats();
             var furs = new List<string>();
+            var furEnums = new List<FurTypesEnum>(); 
 
             foreach (var value in Enum.GetValues(typeof(FurTypesEnum)))
             {
@@ -42,6 +44,10 @@ namespace CatMash.ConsoleTool
 
             using (var connection = new SqlConnection(connectionString))
             {
+                connection.Open();
+
+                connection.Query("CreateTables", commandType: CommandType.StoredProcedure);
+
                 connection.Execute(@"INSERT Cats(CatUrl,IsAStar,IsTopOne,IsAlone,Rating) VALUES (@catUrl,@isAStar,@isTopOne,@isAlone,@rating)",
                     cats.Select(x => new
                     {
@@ -51,10 +57,31 @@ namespace CatMash.ConsoleTool
                         isAlone = x.IsAlone,
                         rating = x.Rating
                     }));
+
                 connection.Execute(@"INSERT FurTypes(FurType) VALUES (@furTypes)",
                     furs.Select(x => new
                     {
                         furTypes = x
+                    }));
+
+                var catsWithId = connection.Query<Cat>(@"SELECT Id, CatUrl, IsAStar, IsTopOne, IsAlone, Rating FROM Cats");
+
+                cats.ToList().ForEach(x => x.Id = catsWithId.Where(y => y.CatUrl == x.CatUrl).Select(z => z.Id).FirstOrDefault());
+
+                var association = new List<Tuple<int, int>>();
+                foreach (var cat in cats)
+                {
+                    foreach (var type in cat.FurTypes)
+                    {
+                        association.Add(new Tuple<int, int>(cat.Id, (int) type +1));
+                    }
+                }
+
+                connection.Execute(@"INSERT CatsFurs(CatId, FurTypeId) VALUES (@catId, @furTypeId)",
+                    association.Select(x => new
+                    {
+                        catId = x.Item1,
+                        furTypeId = x.Item2
                     }));
             }
         }
@@ -83,7 +110,7 @@ namespace CatMash.ConsoleTool
                     {
                         CatUrl = jtoken["url"].ToString(),
                         FurTypes = furs,
-                        IsAlone = (items.Count() > 1) ? false : true
+                        IsAlone = (items.Count() <= 1)
                     });
                 }
             }

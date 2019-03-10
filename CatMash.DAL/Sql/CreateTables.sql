@@ -1,3 +1,13 @@
+CREATE PROCEDURE CreateTables 
+as
+BEGIN
+IF EXISTS(SELECT * FROM dbo.sysobjects where id = object_id(N'dbo.[CatsFurs]') and OBJECTPROPERTY(id, N'IsTable') = 1)
+DROP TABLE CatsFurs
+IF EXISTS(SELECT * FROM dbo.sysobjects where id = object_id(N'dbo.[Cats]') and OBJECTPROPERTY(id, N'IsTable') = 1)
+DROP TABLE Cats
+IF EXISTS(SELECT * FROM dbo.sysobjects where id = object_id(N'dbo.[FurTypes]') and OBJECTPROPERTY(id, N'IsTable') = 1)
+DROP TABLE FurTypes
+
 CREATE TABLE dbo.Cats
 (
 	Id INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
@@ -10,7 +20,6 @@ CREATE TABLE dbo.Cats
 	INDEX IX_IsAStar NONCLUSTERED (IsAStar),
 	INDEX IX_IsTopOne NONCLUSTERED (IsTopOne)
 )
-
 CREATE TABLE dbo.FurTypes
 (
 	Id INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
@@ -29,3 +38,5 @@ CREATE TABLE dbo.CatsFurs
 	ON UPDATE CASCADE
 
 )
+END
+GO
