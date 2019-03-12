@@ -73,7 +73,7 @@ namespace CatMash.ConsoleTool
                 {
                     foreach (var type in cat.FurTypes)
                     {
-                        association.Add(new Tuple<int, int>(cat.Id, (int) type +1));
+                        association.Add(new Tuple<int, int>(cat.Id, (int) type));
                     }
                 }
 

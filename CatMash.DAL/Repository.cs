@@ -1,5 +1,6 @@
 ﻿using CatMash.Domain;
 using CatMash.Domain.Enums;
+using CatMash.Domain.Models;
 using CatMash.Domain.StoredProceduresParameters;
 using Dapper;
 using Microsoft.Extensions.Configuration;
@@ -22,6 +23,33 @@ namespace CatMash.DAL
         public Repository(IConfiguration configuration)
         {
             _configuration = configuration;
+        }
+
+        public async Task<Cat> GetCatAsync(int id)
+        {
+            var connection = new SqlConnection(_configuration.GetConnectionString("Connection"));
+            var dynamicParameters = new DynamicParameters();
+            dynamicParameters.Add("@Id", id);
+            var catResult = new Cat();
+            try
+            {
+                using (connection)
+                {
+                    await connection.OpenAsync();
+                    var result = await connection.QueryMultipleAsync("SelectOneCat", dynamicParameters, commandType: CommandType.StoredProcedure);
+
+                    catResult = (await result.ReadFirstAsync<Cat>());
+                    var enumFur = (await result.ReadAsync<FurTypesEnum>()).ToList();
+                    catResult.FurTypes = enumFur;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+
+            return catResult;
         }
 
         public async Task<Response> GetOneAsync<Parameters, Response>(Parameters parameters) where Parameters : IBaseStoredProcedureParameters

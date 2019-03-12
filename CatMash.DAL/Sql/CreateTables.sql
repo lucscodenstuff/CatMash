@@ -1,6 +1,11 @@
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name = 'CreateTables')
+DROP PROCEDURE CreateTables
+GO
+
 CREATE PROCEDURE CreateTables 
 as
 BEGIN
+SET NOCOUNT ON
 IF EXISTS(SELECT * FROM dbo.sysobjects where id = object_id(N'dbo.[CatsFurs]') and OBJECTPROPERTY(id, N'IsTable') = 1)
 DROP TABLE CatsFurs
 IF EXISTS(SELECT * FROM dbo.sysobjects where id = object_id(N'dbo.[Cats]') and OBJECTPROPERTY(id, N'IsTable') = 1)
