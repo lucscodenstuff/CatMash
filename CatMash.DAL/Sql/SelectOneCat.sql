@@ -17,3 +17,4 @@ JOIN FurTypes f on cf.FurTypeId = f.Id
 WHERE c.Id = @Id
 END
 GO
+EXEC SelectOneCat 3

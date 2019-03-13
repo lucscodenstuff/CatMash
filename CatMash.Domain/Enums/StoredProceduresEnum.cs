@@ -7,6 +7,7 @@ namespace CatMash.Domain.Enums
     public enum StoredProceduresEnum
     {
         SelectOneCat,
-        SelectMultipleCats
+        SelectMultipleCats,
+        SelectTwoCats
     }
 }

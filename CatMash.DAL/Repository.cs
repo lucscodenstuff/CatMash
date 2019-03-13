@@ -25,42 +25,15 @@ namespace CatMash.DAL
             _configuration = configuration;
         }
 
-        public async Task<Cat> GetCatAsync(int id)
+        public async Task<Cat> GetCatAsync<Parameters>(Parameters parameters)
+            where Parameters : IBaseStoredProcedureParameters
         {
             var connection = new SqlConnection(_configuration.GetConnectionString("Connection"));
-            var dynamicParameters = new DynamicParameters();
-            dynamicParameters.Add("@Id", id);
-            var catResult = new Cat();
-            try
-            {
-                using (connection)
-                {
-                    await connection.OpenAsync();
-                    var result = await connection.QueryMultipleAsync("SelectOneCat", dynamicParameters, commandType: CommandType.StoredProcedure);
-
-                    catResult = (await result.ReadFirstAsync<Cat>());
-                    var enumFur = (await result.ReadAsync<FurTypesEnum>()).ToList();
-                    catResult.FurTypes = enumFur;
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
-
-            return catResult;
-        }
-
-        public async Task<Response> GetOneAsync<Parameters, Response>(Parameters parameters) where Parameters : IBaseStoredProcedureParameters
-        {
-            var connection = new SqlConnection(_configuration.GetConnectionString("Connection"));
-            var dynamicParameters = new DynamicParameters();
             string storedProcedure = null;
-            Response result;
 
-            dynamicParameters = CreateParameters(parameters, out storedProcedure);
+            var dynamicParameters = CreateParameters(parameters, out storedProcedure);
 
+            var cat = new Cat();
             try
             {
                 if (!String.IsNullOrEmpty(storedProcedure))
@@ -68,9 +41,44 @@ namespace CatMash.DAL
                     using (connection)
                     {
                         await connection.OpenAsync();
-                        result = (await connection.QueryAsync<Response>(storedProcedure, dynamicParameters, commandType: CommandType.StoredProcedure)).FirstOrDefault();
+                        var result = await connection.QueryMultipleAsync(storedProcedure, dynamicParameters,
+                            commandType: CommandType.StoredProcedure);
+
+                        cat = (await result.ReadFirstAsync<Cat>());
+                        var enumFur = (await result.ReadAsync<FurTypesEnum>()).ToList();
+                        cat.FurTypes = enumFur;
                     }
-                    return result;
+                    return cat;
+                }
+                throw new ArgumentException("The stored procedure name is missing");
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError($"Error calling {storedProcedure} : \r\n" + e.ToString());
+                throw;
+            }
+        }     
+
+        public async Task<IEnumerable<Cat>> GetCatsAsync<Parameters>(Parameters parameters)
+            where Parameters : IBaseStoredProcedureParameters
+        {
+            var connection = new SqlConnection(_configuration.GetConnectionString("Connection"));
+            string storedProcedure = null;
+
+            var dynamicParameters = CreateParameters(parameters, out storedProcedure);
+
+            IEnumerable<Cat> cats;
+            try
+            {
+                if (!String.IsNullOrEmpty(storedProcedure))
+                {
+                    using (connection)
+                    {
+                        await connection.OpenAsync();
+                        cats = await connection.QueryAsync<Cat>(storedProcedure, dynamicParameters,
+                            commandType: CommandType.StoredProcedure);
+                    }
+                    return cats;
                 }
                 throw new ArgumentException("The stored procedure name is missing");
             }

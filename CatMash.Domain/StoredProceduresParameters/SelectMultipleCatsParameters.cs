@@ -15,7 +15,7 @@ namespace CatMash.Domain.StoredProceduresParameters
             StoredProcedure = StoredProceduresEnum.SelectMultipleCats;
         }
 
-        public SelectMultipleCatsParameters(bool? isAStar, FurTypesEnum? furType, bool? isAlone)
+        public SelectMultipleCatsParameters(bool? isAStar = null, FurTypesEnum? furType = null, bool? isAlone = null)
         {
             StoredProcedure = StoredProceduresEnum.SelectMultipleCats;
 
