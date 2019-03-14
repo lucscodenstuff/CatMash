@@ -26,7 +26,8 @@ namespace CatMash.API.Controllers
         [HttpGet(Name = "GetCats")]
         public async Task<IEnumerable<Cat>> GetCats(FurTypesEnum? furTypes)
         {
-            return new List<Cat>();
+            var cats = await _catService.GetCats(furTypes);
+            return cats;
         }
 
         [HttpGet, Route("{furType}", Name = "GetCatsByFurType")]
