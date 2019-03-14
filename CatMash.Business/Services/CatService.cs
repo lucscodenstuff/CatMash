@@ -70,20 +70,20 @@ namespace CatMash.Business.Services
             return catTwoId;
         }
 
-        public async Task<Cat> PatchCat(Cat cat, bool isWinner, FurTypesEnum? furType = null)
+        public async Task<Cat> PatchCats(Cat winner, Cat loser)
         {
-            var parameters = new CountViewsParameters(furType);
+            var parameters = new CountViewsParameters();
             int totalViews = await _repository.GetOneAsync<int, CountViewsParameters>(parameters);
 
-            cat.ViewsNumber += 1;
-            cat.ProbabilityWeight = (1 - (cat.ViewsNumber / totalViews));
+            loser.ViewsNumber += 1;
+            loser.ProbabilityWeight = (1 - (winner.ViewsNumber / totalViews));
 
-            if (isWinner)
-            {
-                var wins = cat.ViewsNumber * cat.Rating / 100;
-                cat.Rating = wins * 100 / cat.ViewsNumber;
-            }
-            return cat;
+            winner.ViewsNumber += 1;
+            winner.ProbabilityWeight = (1 - (winner.ViewsNumber / totalViews));
+            var wins = winner.ViewsNumber * winner.Rating / 100;
+            winner.Rating = wins * 100 / winner.ViewsNumber;
+
+            return winner;
         }
     }
 }

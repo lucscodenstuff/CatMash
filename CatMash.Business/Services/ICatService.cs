@@ -10,5 +10,6 @@ namespace CatMash.Business.Services
         Task<Cat> RetrieveCatById(int id);
         Task<IEnumerable<Cat>> GetCats(FurTypesEnum? furType = null);
         Task<IEnumerable<Cat>> RetrieveTwoRandomCats(FurTypesEnum? furType = null);
+        Task<Cat> PatchCats(Cat winner, Cat loser);
     }
 }

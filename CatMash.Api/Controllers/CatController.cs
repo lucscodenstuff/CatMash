@@ -49,8 +49,9 @@ namespace CatMash.API.Controllers
         }
 
         [HttpPatch("{id}")]
-        public async Task PatchCatScore(int id, short rating)
+        public async Task PatchCatsScores(Cat winner, Cat loser)
         {
+            var winnerCat = await _catService.PatchCats(winner, loser);
         }
     }
 }
