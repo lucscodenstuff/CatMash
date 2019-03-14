@@ -28,19 +28,19 @@ namespace CatMash.Business.Services
         public async Task<IEnumerable<Cat>> GetCats(FurTypesEnum? furType = null)
         {
             var parameters = new SelectMultipleCatsParameters(furType: furType);
-            return await _repository.GetCatsAsync(parameters);
+            return await _repository.GetAsync<Cat, SelectMultipleCatsParameters>(parameters);
         }
 
         public async Task<IEnumerable<Cat>> RetrieveTwoRandomCats(FurTypesEnum? furType = null)
         {
             var parameter = new SelectMultipleCatsParameters(furType: furType);
-            var cats = (await _repository.GetCatsAsync(parameter)).OrderBy(x => x.ProbabilityWeight);
+            var cats = (await _repository.GetAsync<Cat, SelectMultipleCatsParameters>(parameter)).OrderBy(x => x.ProbabilityWeight);
 
             var catOneId = ChoseCatContestant(cats);
-            var catTwoId = ChoseCatContestant(cats);
+            var catTwoId = GetAnotherCat(catOneId, cats);
 
             var parameters = new SelectTwoCatsParameters(catOneId, catTwoId, furType);
-            return await _repository.GetCatsAsync(parameters);
+            return await _repository.GetAsync<Cat, SelectTwoCatsParameters>(parameters);
         }
 
         private int ChoseCatContestant(IEnumerable<Cat> cats)
@@ -58,6 +58,32 @@ namespace CatMash.Business.Services
                 }
             }
             return cats.Last().Id;
+        }
+
+        private int GetAnotherCat(int catOneId, IEnumerable<Cat> cats)
+        {
+            int catTwoId = ChoseCatContestant(cats);
+            if (catOneId == catTwoId)
+            {
+                return GetAnotherCat(catOneId, cats);
+            }
+            return catTwoId;
+        }
+
+        public async Task<Cat> PatchCat(Cat cat, bool isWinner, FurTypesEnum? furType = null)
+        {
+            var parameters = new CountViewsParameters(furType);
+            int totalViews = await _repository.GetOneAsync<int, CountViewsParameters>(parameters);
+
+            cat.ViewsNumber += 1;
+            cat.ProbabilityWeight = (1 - (cat.ViewsNumber / totalViews));
+
+            if (isWinner)
+            {
+                var wins = cat.ViewsNumber * cat.Rating / 100;
+                cat.Rating = wins * 100 / cat.ViewsNumber;
+            }
+            return cat;
         }
     }
 }

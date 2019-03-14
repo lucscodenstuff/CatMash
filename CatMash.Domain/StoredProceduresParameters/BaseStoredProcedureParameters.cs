@@ -7,7 +7,7 @@ namespace CatMash.Domain.StoredProceduresParameters
 {
     public class BaseStoredProcedureParameters : IBaseStoredProcedureParameters
     {
-        public string Id { get; }
+        public int? Id { get; }
         public int? Rows { get; }
         public int? Offset { get; }
         public StoredProceduresEnum StoredProcedure { get; protected set; }
@@ -23,7 +23,7 @@ namespace CatMash.Domain.StoredProceduresParameters
             Offset = startingLine;
         }
 
-        protected BaseStoredProcedureParameters(string id)
+        protected BaseStoredProcedureParameters(int id)
         {
             Id = id;
         }

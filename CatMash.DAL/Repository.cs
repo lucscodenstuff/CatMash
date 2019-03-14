@@ -16,11 +16,11 @@ using System.Threading.Tasks;
 
 namespace CatMash.DAL
 {
-    public class Repository : IRepository
+    public abstract class Repository : IRepository
     {
         private readonly IConfiguration _configuration;
 
-        public Repository(IConfiguration configuration)
+        protected Repository(IConfiguration configuration)
         {
             _configuration = configuration;
         }
@@ -29,9 +29,8 @@ namespace CatMash.DAL
             where Parameters : IBaseStoredProcedureParameters
         {
             var connection = new SqlConnection(_configuration.GetConnectionString("Connection"));
-            string storedProcedure = null;
 
-            var dynamicParameters = CreateParameters(parameters, out storedProcedure);
+            var dynamicParameters = CreateParameters(parameters, out var storedProcedure);
 
             var cat = new Cat();
             try
@@ -54,37 +53,64 @@ namespace CatMash.DAL
             }
             catch (Exception e)
             {
-                Trace.TraceError($"Error calling {storedProcedure} : \r\n" + e.ToString());
+                Trace.TraceError($"Error calling {storedProcedure} : \r\n" + e);
                 throw;
             }
         }     
 
-        public async Task<IEnumerable<Cat>> GetCatsAsync<Parameters>(Parameters parameters)
+        public async Task<IEnumerable<Response>> GetAsync<Response, Parameters>(Parameters parameters)
             where Parameters : IBaseStoredProcedureParameters
         {
             var connection = new SqlConnection(_configuration.GetConnectionString("Connection"));
-            string storedProcedure = null;
 
-            var dynamicParameters = CreateParameters(parameters, out storedProcedure);
+            var dynamicParameters = CreateParameters(parameters, out var storedProcedure);
 
-            IEnumerable<Cat> cats;
             try
             {
                 if (!String.IsNullOrEmpty(storedProcedure))
                 {
+                    IEnumerable<Response> results;
                     using (connection)
                     {
                         await connection.OpenAsync();
-                        cats = await connection.QueryAsync<Cat>(storedProcedure, dynamicParameters,
+                        results = await connection.QueryAsync<Response>(storedProcedure, dynamicParameters,
                             commandType: CommandType.StoredProcedure);
                     }
-                    return cats;
+                    return results;
                 }
                 throw new ArgumentException("The stored procedure name is missing");
             }
             catch (Exception e)
             {
-                Trace.TraceError($"Error calling {storedProcedure} : \r\n" + e.ToString());
+                Trace.TraceError($"Error calling {storedProcedure} : \r\n" + e);
+                throw;
+            }
+        }
+
+        public async Task<Response> GetOneAsync<Response, Parameters>(Parameters parameters)
+            where Parameters : IBaseStoredProcedureParameters
+        {
+            var connection = new SqlConnection(_configuration.GetConnectionString("Connection"));
+            var dynamicParameters = CreateParameters(parameters, out var storedProcedure);
+
+            try
+            {
+                if (!String.IsNullOrEmpty(storedProcedure))
+                {
+                    Response result;
+                    using (connection)
+                    {
+                        await connection.OpenAsync();
+                        result = (await connection.QueryAsync<Response>(storedProcedure, dynamicParameters,
+                            commandType: CommandType.StoredProcedure)).FirstOrDefault();
+                    }
+                    return result;
+                }
+                throw new ArgumentException("The stored procedure name is missing");
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError($"Error calling {storedProcedure} : \r\n" + e);
                 throw;
             }
         }

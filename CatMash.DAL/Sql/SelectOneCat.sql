@@ -6,7 +6,7 @@ CREATE PROCEDURE SelectOneCat (@Id INT)
 as
 BEGIN
 SET NOCOUNT ON
-SELECT c.Id, c.CatUrl, c.IsAStar, c.IsTopOne, c.IsAlone, c.Rating, 0
+SELECT c.Id, c.CatUrl, c.IsAStar, c.IsTopOne, c.IsAlone, c.Rating,c.ViewsNumber, c.ProbabilityWeight, 0
 FROM Cats c
 WHERE c.Id = @Id
 

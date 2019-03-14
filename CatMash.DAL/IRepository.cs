@@ -10,7 +10,10 @@ namespace CatMash.DAL
         Task<Cat> GetCatAsync<Parameters>(Parameters parameters)
             where Parameters : IBaseStoredProcedureParameters;
 
-        Task<IEnumerable<Cat>> GetCatsAsync<Parameters>(Parameters parameters)
+        Task<IEnumerable<Response>> GetAsync<Response, Parameters>(Parameters parameters)
+            where Parameters : IBaseStoredProcedureParameters;
+
+        Task<Response> GetOneAsync<Response, Parameters>(Parameters parameters)
             where Parameters : IBaseStoredProcedureParameters;
     }
 }

@@ -15,7 +15,7 @@ namespace CatMash.ConsoleTool
 {
     class Program
     {
-        private readonly static string connectionString =
+        private static readonly string connectionString =
             "Server=tcp:catmash-server.database.windows.net,1433;Initial Catalog=CatMash;Persist Security Info=False;User ID=dbadmin;Password=Azerty123;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";
         static void Main(string[] args)
         {
@@ -111,7 +111,7 @@ namespace CatMash.ConsoleTool
                         CatUrl = jtoken["url"].ToString(),
                         FurTypes = furs,
                         IsAlone = (items.Count() <= 1),
-                        ProbabilityWeight = 0.01
+                        ProbabilityWeight = 0.99
                     });
                 }
             }

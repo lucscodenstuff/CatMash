@@ -10,7 +10,7 @@ namespace CatMash.Domain.StoredProceduresParameters
         public int CatOneId { get; set; }
         public int CatTwoId { get; set; }
         public FurTypesEnum? FurType { get; set; }
-        public SelectTwoCatsParameters() : base()
+        public SelectTwoCatsParameters()
         {
             StoredProcedure = StoredProceduresEnum.SelectTwoCats;
         }

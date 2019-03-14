@@ -8,6 +8,7 @@ namespace CatMash.Domain.Enums
     {
         SelectOneCat,
         SelectMultipleCats,
-        SelectTwoCats
+        SelectTwoCats,
+        CountViews
     }
 }
