@@ -18,41 +18,75 @@ namespace CatMash.API.Controllers
             _catService = catService;
         }
         [HttpGet, Route("{catId}", Name = "GetCat")]
-        public async Task<Cat> GetCat(int catId)
+        public async Task<IActionResult> GetCat(int catId)
         {
-            return await _catService.RetrieveCatById(catId);
+            var cat = await _catService.RetrieveCatById(catId);
+            if (cat != null)
+            {
+                return Ok(cat);
+            }
+
+            return NotFound();
         }
 
         [HttpGet(Name = "GetCats")]
-        public async Task<IEnumerable<Cat>> GetCats(FurTypesEnum? furTypes)
+        public async Task<IActionResult> GetCats()
         {
-            var cats = await _catService.GetCats(furTypes);
-            return cats;
+            var cats = await _catService.GetCats();
+            if (cats.Count() > 0 && cats != null)
+            {
+                return Ok(cats);
+            }
+
+            return NotFound();
         }
 
         [HttpGet, Route("{furType}", Name = "GetCatsByFurType")]
-        public async Task<IEnumerable<Cat>> GetCatsByFurType(FurTypesEnum furType)
+        public async Task<IActionResult> GetCatsByFurType(FurTypesEnum furType)
         {
-            return new List<Cat>();
+            var cats = await _catService.GetCats(furType);
+            if (cats.Count() > 0 && cats != null)
+            {
+                return Ok(cats);
+            }
+
+            return NotFound();
         }
 
         [HttpGet, Route("random", Name = "GetTwoRandomCats")]
-        public async Task<IEnumerable<Cat>> GetTwoRandomCats()
+        public async Task<IActionResult> GetTwoRandomCats()
         {
             var cats = await _catService.RetrieveTwoRandomCats();
-            return cats;
+            if (cats.Count() > 0 && cats != null)
+            {
+                return Ok(cats);
+            }
+
+            return NotFound();
         }
 
         [HttpGet, Route("random/{furType}", Name = "GetTwoRandomCatsByFur")]
-        public async Task<IEnumerable<Cat>> GetTwoRandomCatsByFur(FurTypesEnum furType)
+        public async Task<IActionResult> GetTwoRandomCatsByFur(FurTypesEnum furType)
         {
-            return new List<Cat>();
+            var cats = await _catService.RetrieveTwoRandomCats(furType);
+            if (cats.Count() > 0 && cats != null)
+            {
+                return Ok(cats);
+            }
+
+            return NotFound();
         }
 
         [HttpPatch("{id}")]
-        public async Task PatchCatsScores(Cat winner, Cat loser)
+        public async Task<IActionResult> PatchCatsScores(Cat winner, Cat loser)
         {
             var winnerCat = await _catService.PatchCats(winner, loser);
+            if (winnerCat != null)
+            {
+                return CreatedAtRoute("GetCat", new { catId = winnerCat.Id}, winnerCat);
+            }
+
+            return BadRequest();
         }
     }
 }
