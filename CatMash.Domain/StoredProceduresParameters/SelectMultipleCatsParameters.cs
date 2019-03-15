@@ -10,12 +10,12 @@ namespace CatMash.Domain.StoredProceduresParameters
         public bool? IsAStar { get; set; }
         public FurTypesEnum? FurType { get; set; }
         public bool? IsAlone { get; set; }
-        public SelectMultipleCatsParameters() : base()
+        public SelectMultipleCatsParameters()
         {
             StoredProcedure = StoredProceduresEnum.SelectMultipleCats;
         }
 
-        public SelectMultipleCatsParameters(bool? isAStar, FurTypesEnum? furType, bool? isAlone)
+        public SelectMultipleCatsParameters(bool? isAStar = null, FurTypesEnum? furType = null, bool? isAlone = null)
         {
             StoredProcedure = StoredProceduresEnum.SelectMultipleCats;
 

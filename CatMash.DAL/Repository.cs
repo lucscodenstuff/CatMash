@@ -16,51 +16,23 @@ using System.Threading.Tasks;
 
 namespace CatMash.DAL
 {
-    public class Repository : IRepository
+    public abstract class Repository : IRepository
     {
         private readonly IConfiguration _configuration;
 
-        public Repository(IConfiguration configuration)
+        protected Repository(IConfiguration configuration)
         {
             _configuration = configuration;
         }
 
-        public async Task<Cat> GetCatAsync(int id)
+        public async Task<Cat> GetCatAsync<Parameters>(Parameters parameters)
+            where Parameters : IBaseStoredProcedureParameters
         {
             var connection = new SqlConnection(_configuration.GetConnectionString("Connection"));
-            var dynamicParameters = new DynamicParameters();
-            dynamicParameters.Add("@Id", id);
-            var catResult = new Cat();
-            try
-            {
-                using (connection)
-                {
-                    await connection.OpenAsync();
-                    var result = await connection.QueryMultipleAsync("SelectOneCat", dynamicParameters, commandType: CommandType.StoredProcedure);
 
-                    catResult = (await result.ReadFirstAsync<Cat>());
-                    var enumFur = (await result.ReadAsync<FurTypesEnum>()).ToList();
-                    catResult.FurTypes = enumFur;
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
+            var dynamicParameters = CreateParameters(parameters, out var storedProcedure);
 
-            return catResult;
-        }
-
-        public async Task<Response> GetOneAsync<Parameters, Response>(Parameters parameters) where Parameters : IBaseStoredProcedureParameters
-        {
-            var connection = new SqlConnection(_configuration.GetConnectionString("Connection"));
-            var dynamicParameters = new DynamicParameters();
-            string storedProcedure = null;
-            Response result;
-
-            dynamicParameters = CreateParameters(parameters, out storedProcedure);
-
+            var cat = new Cat();
             try
             {
                 if (!String.IsNullOrEmpty(storedProcedure))
@@ -68,7 +40,69 @@ namespace CatMash.DAL
                     using (connection)
                     {
                         await connection.OpenAsync();
-                        result = (await connection.QueryAsync<Response>(storedProcedure, dynamicParameters, commandType: CommandType.StoredProcedure)).FirstOrDefault();
+                        var result = await connection.QueryMultipleAsync(storedProcedure, dynamicParameters,
+                            commandType: CommandType.StoredProcedure);
+
+                        cat = (await result.ReadFirstAsync<Cat>());
+                        var enumFur = (await result.ReadAsync<FurTypesEnum>()).ToList();
+                        cat.FurTypes = enumFur;
+                    }
+                    return cat;
+                }
+                throw new ArgumentException("The stored procedure name is missing");
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError($"Error calling {storedProcedure} : \r\n" + e);
+                throw;
+            }
+        }     
+
+        public async Task<IEnumerable<Response>> GetAsync<Response, Parameters>(Parameters parameters)
+            where Parameters : IBaseStoredProcedureParameters
+        {
+            var connection = new SqlConnection(_configuration.GetConnectionString("Connection"));
+
+            var dynamicParameters = CreateParameters(parameters, out var storedProcedure);
+
+            try
+            {
+                if (!String.IsNullOrEmpty(storedProcedure))
+                {
+                    IEnumerable<Response> results;
+                    using (connection)
+                    {
+                        await connection.OpenAsync();
+                        results = await connection.QueryAsync<Response>(storedProcedure, dynamicParameters,
+                            commandType: CommandType.StoredProcedure);
+                    }
+                    return results;
+                }
+                throw new ArgumentException("The stored procedure name is missing");
+            }
+            catch (Exception e)
+            {
+                Trace.TraceError($"Error calling {storedProcedure} : \r\n" + e);
+                throw;
+            }
+        }
+
+        public async Task<Response> GetOneAsync<Response, Parameters>(Parameters parameters)
+            where Parameters : IBaseStoredProcedureParameters
+        {
+            var connection = new SqlConnection(_configuration.GetConnectionString("Connection"));
+            var dynamicParameters = CreateParameters(parameters, out var storedProcedure);
+
+            try
+            {
+                if (!String.IsNullOrEmpty(storedProcedure))
+                {
+                    Response result;
+                    using (connection)
+                    {
+                        await connection.OpenAsync();
+                        result = (await connection.QueryAsync<Response>(storedProcedure, dynamicParameters,
+                            commandType: CommandType.StoredProcedure)).FirstOrDefault();
                     }
                     return result;
                 }
@@ -76,7 +110,7 @@ namespace CatMash.DAL
             }
             catch (Exception e)
             {
-                Trace.TraceError($"Error calling {storedProcedure} : \r\n" + e.ToString());
+                Trace.TraceError($"Error calling {storedProcedure} : \r\n" + e);
                 throw;
             }
         }

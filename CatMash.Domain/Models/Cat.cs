@@ -12,7 +12,9 @@ namespace CatMash.Domain.Models
         public bool IsAStar { get; set; }
         public bool IsTopOne { get; set; }
         public bool IsAlone { get; set; }
-        public decimal Rating { get; set; }
+        public double Rating { get; set; }
+        public int ViewsNumber { get; set; }
+        public double ProbabilityWeight { get; set; }
         public IEnumerable<FurTypesEnum> FurTypes { get; set; }
     }
 }

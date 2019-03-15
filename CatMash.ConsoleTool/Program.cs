@@ -15,7 +15,7 @@ namespace CatMash.ConsoleTool
 {
     class Program
     {
-        private readonly static string connectionString =
+        private static readonly string connectionString =
             "Server=tcp:catmash-server.database.windows.net,1433;Initial Catalog=CatMash;Persist Security Info=False;User ID=dbadmin;Password=Azerty123;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;";
         static void Main(string[] args)
         {
@@ -40,22 +40,22 @@ namespace CatMash.ConsoleTool
                 Console.WriteLine(fur);
             }
 
-            Console.ReadLine();
-
             using (var connection = new SqlConnection(connectionString))
             {
                 connection.Open();
 
                 connection.Query("CreateTables", commandType: CommandType.StoredProcedure);
 
-                connection.Execute(@"INSERT Cats(CatUrl,IsAStar,IsTopOne,IsAlone,Rating) VALUES (@catUrl,@isAStar,@isTopOne,@isAlone,@rating)",
+                connection.Execute(@"INSERT Cats(CatUrl,IsAStar,IsTopOne,IsAlone,Rating,ViewsNumber,ProbabilityWeight) VALUES (@catUrl,@isAStar,@isTopOne,@isAlone,@rating,@viewsNumber,@probabilityWeight)",
                     cats.Select(x => new
                     {
                         catUrl = x.CatUrl,
                         isAStar = x.IsAStar,
                         isTopOne = x.IsTopOne,
                         isAlone = x.IsAlone,
-                        rating = x.Rating
+                        rating = x.Rating,
+                        viewsNumber = x.ViewsNumber,
+                        probabilityWeight = x.ProbabilityWeight,
                     }));
 
                 connection.Execute(@"INSERT FurTypes(FurType) VALUES (@furTypes)",
@@ -110,7 +110,8 @@ namespace CatMash.ConsoleTool
                     {
                         CatUrl = jtoken["url"].ToString(),
                         FurTypes = furs,
-                        IsAlone = (items.Count() <= 1)
+                        IsAlone = (items.Count() <= 1),
+                        ProbabilityWeight = 0.99
                     });
                 }
             }

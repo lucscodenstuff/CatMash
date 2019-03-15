@@ -4,4 +4,8 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\CatMash.DAL\CatMash.DAL.csproj" />
+  </ItemGroup>
+
 </Project>
