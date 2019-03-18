@@ -16,11 +16,11 @@ using System.Threading.Tasks;
 
 namespace CatMash.DAL
 {
-    public abstract class Repository : IRepository
+    public class Repository : IRepository
     {
         private readonly IConfiguration _configuration;
 
-        protected Repository(IConfiguration configuration)
+        public Repository(IConfiguration configuration)
         {
             _configuration = configuration;
         }

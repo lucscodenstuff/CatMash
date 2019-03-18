@@ -14,4 +14,10 @@
     <ProjectReference Include="..\CatMash.Domain\CatMash.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Cats.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
