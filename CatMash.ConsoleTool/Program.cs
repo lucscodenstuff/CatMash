@@ -10,6 +10,8 @@ using System.Runtime.CompilerServices;
 using Newtonsoft.Json.Linq;
 using CatMash.Domain.Enums;
 using Dapper;
+using System.Reflection;
+using FastMember;
 
 namespace CatMash.ConsoleTool
 {
@@ -21,7 +23,6 @@ namespace CatMash.ConsoleTool
         {
             var cats = DesirializeCats();
             var furs = new List<string>();
-            var furEnums = new List<FurTypesEnum>(); 
 
             foreach (var value in Enum.GetValues(typeof(FurTypesEnum)))
             {
@@ -43,26 +44,41 @@ namespace CatMash.ConsoleTool
             using (var connection = new SqlConnection(connectionString))
             {
                 connection.Open();
-
                 connection.Query("CreateTables", commandType: CommandType.StoredProcedure);
 
-                connection.Execute(@"INSERT Cats(CatUrl,IsAStar,IsTopOne,IsAlone,Rating,ViewsNumber,ProbabilityWeight) VALUES (@catUrl,@isAStar,@isTopOne,@isAlone,@rating,@viewsNumber,@probabilityWeight)",
-                    cats.Select(x => new
-                    {
-                        catUrl = x.CatUrl,
-                        isAStar = x.IsAStar,
-                        isTopOne = x.IsTopOne,
-                        isAlone = x.IsAlone,
-                        rating = x.Rating,
-                        viewsNumber = x.ViewsNumber,
-                        probabilityWeight = x.ProbabilityWeight,
-                    }));
+                using (var bulkCopy = new SqlBulkCopy(connection))
+                using (var reader = ObjectReader.Create(cats, "CatUrl", "IsAStar", "IsTopOne", "IsAlone", "Rating", "ViewsNumber", "ProbabilityWeight"))
+                {
+                    var catUrlMap = new SqlBulkCopyColumnMapping("CatUrl", "CatUrl");
+                    bulkCopy.ColumnMappings.Add(catUrlMap);
+                    var isAStarMap = new SqlBulkCopyColumnMapping("IsAStar", "IsAStar");
+                    bulkCopy.ColumnMappings.Add(isAStarMap);
+                    var isTopOneMap = new SqlBulkCopyColumnMapping("IsTopOne", "IsTopOne");
+                    bulkCopy.ColumnMappings.Add(isTopOneMap);
+                    var isAloneMap = new SqlBulkCopyColumnMapping("IsAlone", "IsAlone");
+                    bulkCopy.ColumnMappings.Add(isAloneMap);
+                    var ratingMap = new SqlBulkCopyColumnMapping("Rating", "Rating");
+                    bulkCopy.ColumnMappings.Add(ratingMap);
+                    var viewsNumberMap = new SqlBulkCopyColumnMapping("ViewsNumber", "ViewsNumber");
+                    bulkCopy.ColumnMappings.Add(viewsNumberMap);
+                    var probabilityWeightMap = new SqlBulkCopyColumnMapping("ProbabilityWeight", "ProbabilityWeight");
+                    bulkCopy.ColumnMappings.Add(probabilityWeightMap);
 
-                connection.Execute(@"INSERT FurTypes(FurType) VALUES (@furTypes)",
-                    furs.Select(x => new
-                    {
-                        furTypes = x
-                    }));
+                    bulkCopy.BatchSize = cats.Count();
+                    bulkCopy.DestinationTableName = "Cats";
+                    bulkCopy.WriteToServer(reader);
+                }
+
+                using (var bulkCopy = new SqlBulkCopy(connection))
+                using (var reader = ObjectReader.Create(furs.Select(x => new { FurType = x }), "FurType"))
+                {
+                    var furTypeMap = new SqlBulkCopyColumnMapping("FurType", "FurType");
+                    bulkCopy.ColumnMappings.Add(furTypeMap);
+
+                    bulkCopy.BatchSize = furs.Count();
+                    bulkCopy.DestinationTableName = "FurTypes";
+                    bulkCopy.WriteToServer(reader);
+                }
 
                 var catsWithId = connection.Query<Cat>(@"SELECT Id, CatUrl, IsAStar, IsTopOne, IsAlone, Rating FROM Cats");
 
@@ -73,49 +89,55 @@ namespace CatMash.ConsoleTool
                 {
                     foreach (var type in cat.FurTypes)
                     {
-                        association.Add(new Tuple<int, int>(cat.Id, (int) type));
+                        association.Add(new Tuple<int, int>(cat.Id, (int)type));
                     }
                 }
 
-                connection.Execute(@"INSERT CatsFurs(CatId, FurTypeId) VALUES (@catId, @furTypeId)",
-                    association.Select(x => new
-                    {
-                        catId = x.Item1,
-                        furTypeId = x.Item2
-                    }));
-            }
-        }
-
-        public static IEnumerable<Cat> DesirializeCats()
-        {
-            var cats = new List<Cat>();
-            using (StreamReader reader = new StreamReader("Cats.json"))
-            {
-                string json = reader.ReadToEnd();
-                var parsedObject = JObject.Parse(json);
-                var jtokens = parsedObject["Cats"].Children().ToList();
-
-                foreach (var jtoken in jtokens)
+                using (var bulkCopy = new SqlBulkCopy(connection))
+                using (var reader = ObjectReader.Create(association.Select(x => new { CatId = x.Item1, FurTypeId = x.Item2}), "CatId", "FurTypeId"))
                 {
-                    var furs = new List<FurTypesEnum>();
-                    FurTypesEnum furEnum = FurTypesEnum.BiColor;
-                    string furList = jtoken["fur"].ToString();
-                    string[] items = furList.Split(';');
-                    foreach (var fur in items)
-                    {
-                        Enum.TryParse(fur, out furEnum);
-                        furs.Add(furEnum);
-                    }
-                    cats.Add(new Cat
-                    {
-                        CatUrl = jtoken["url"].ToString(),
-                        FurTypes = furs,
-                        IsAlone = (items.Count() <= 1),
-                        ProbabilityWeight = 0.99
-                    });
+                    var catIdMap = new SqlBulkCopyColumnMapping("CatId", "CatId");
+                    bulkCopy.ColumnMappings.Add(catIdMap);
+                    var furTypeIdMap = new SqlBulkCopyColumnMapping("FurTypeId", "FurTypeId");
+                    bulkCopy.ColumnMappings.Add(furTypeIdMap);
+
+                    bulkCopy.BatchSize = association.Count();
+                    bulkCopy.DestinationTableName = "CatsFurs";
+                    bulkCopy.WriteToServer(reader);
                 }
             }
-            return cats;
         }
+
+    private static IEnumerable<Cat> DesirializeCats()
+    {
+        var cats = new List<Cat>();
+        using (StreamReader reader = new StreamReader("Cats.json"))
+        {
+            string json = reader.ReadToEnd();
+            var parsedObject = JObject.Parse(json);
+            var jtokens = parsedObject["Cats"].Children().ToList();
+
+            foreach (var jtoken in jtokens)
+            {
+                var furs = new List<FurTypesEnum>();
+                FurTypesEnum furEnum = FurTypesEnum.BiColor;
+                string furList = jtoken["fur"].ToString();
+                string[] items = furList.Split(';');
+                foreach (var fur in items)
+                {
+                    Enum.TryParse(fur, out furEnum);
+                    furs.Add(furEnum);
+                }
+                cats.Add(new Cat
+                {
+                    CatUrl = jtoken["url"].ToString(),
+                    FurTypes = furs,
+                    IsAlone = (items.Count() <= 1),
+                    ProbabilityWeight = 0.99
+                });
+            }
+        }
+        return cats;
     }
+}
 }
