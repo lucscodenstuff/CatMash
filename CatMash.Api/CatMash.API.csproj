@@ -21,7 +21,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CatMash.Business\CatMash.Business.csproj" />
-    <ProjectReference Include="..\CatMash.DAL\CatMash.DAL.csproj" />
   </ItemGroup>
 
 </Project>
