@@ -25,17 +25,17 @@ namespace CatMash.Api
         }
 
         public IConfiguration Configuration { get; }
-        readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+        readonly string AllowOrigins = "AllowOrigins";
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCors(option =>
             {
-                option.AddPolicy(MyAllowSpecificOrigins,
+                option.AddPolicy(AllowOrigins,
                     builder =>
                     {
-                        builder.WithOrigins("http://localhost:8080");
+                        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
                     });
             });
 
@@ -54,7 +54,7 @@ namespace CatMash.Api
             {
                 app.UseDeveloperExceptionPage();
             }
-            app.UseCors(MyAllowSpecificOrigins);
+            app.UseCors(AllowOrigins);
             app.UseMvc();
 
             env.ConfigureNLog("nlog.config");

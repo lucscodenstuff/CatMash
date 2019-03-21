@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using CatMash.Domain.Enums;
 
 namespace CatMash.Domain.Models
@@ -16,5 +14,11 @@ namespace CatMash.Domain.Models
         public int ViewsNumber { get; set; }
         public double ProbabilityWeight { get; set; }
         public IEnumerable<FurTypesEnum> FurTypes { get; set; }
+    }
+
+    public class Payload
+    {
+        public Cat Winner { get; set; }
+        public Cat Loser { get; set; }
     }
 }

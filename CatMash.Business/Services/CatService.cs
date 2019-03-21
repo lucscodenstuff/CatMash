@@ -74,6 +74,8 @@ namespace CatMash.Business.Services
         {
             var parameters = new CountViewsParameters();
             int totalViews = await _repository.GetOneAsync<int, CountViewsParameters>(parameters);
+            if (totalViews == 0)
+                totalViews = 1;
 
             var wins = Math.Round(winner.ViewsNumber * winner.Rating / 100) + 1;
             winner.ViewsNumber += 1;
@@ -90,6 +92,8 @@ namespace CatMash.Business.Services
         {
             var parameters = new CountViewsParameters();
             int totalViews = await _repository.GetOneAsync<int, CountViewsParameters>(parameters);
+            if (totalViews == 0)
+                totalViews = 1;
 
             loser.ViewsNumber += 1;
             loser.ProbabilityWeight = 1 - (Convert.ToDouble(loser.ViewsNumber) / totalViews);
