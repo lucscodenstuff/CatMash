@@ -133,7 +133,7 @@ namespace CatMash.ConsoleTool
                     CatUrl = jtoken["url"].ToString(),
                     FurTypes = furs,
                     IsAlone = (items.Count() <= 1),
-                    ProbabilityWeight = 0.99
+                    ProbabilityWeight = 0.01
                 });
             }
         }

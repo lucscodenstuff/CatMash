@@ -7,9 +7,9 @@ namespace CatMash.Domain.StoredProceduresParameters
 {
     public class BaseStoredProcedureParameters : IBaseStoredProcedureParameters
     {
-        public int? Id { get; }
-        public int? Rows { get; }
-        public int? Offset { get; }
+        public int? Id { get; set; }
+        public int? Rows { get; set; }
+        public int? Offset { get; set; }
         public StoredProceduresEnum StoredProcedure { get; protected set; }
 
         protected BaseStoredProcedureParameters()

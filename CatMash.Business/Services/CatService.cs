@@ -43,7 +43,7 @@ namespace CatMash.Business.Services
             return await _repository.GetAsync<Cat, SelectTwoCatsParameters>(parameters);
         }
 
-        private int ChoseCatContestant(IEnumerable<Cat> cats)
+        protected int ChoseCatContestant(IEnumerable<Cat> cats)
         {
             var random = new Random();
             double randomValue = random.NextDouble();
@@ -60,7 +60,7 @@ namespace CatMash.Business.Services
             return cats.Last().Id;
         }
 
-        private int GetAnotherCat(int catOneId, IEnumerable<Cat> cats)
+        internal int GetAnotherCat(int catOneId, IEnumerable<Cat> cats)
         {
             int catTwoId = ChoseCatContestant(cats);
             if (catOneId == catTwoId)
@@ -70,20 +70,33 @@ namespace CatMash.Business.Services
             return catTwoId;
         }
 
-        public async Task<Cat> PatchCats(Cat winner, Cat loser)
+        public async Task<Cat> PatchWinnerCat(Cat winner)
+        {
+            var parameters = new CountViewsParameters();
+            int totalViews = await _repository.GetOneAsync<int, CountViewsParameters>(parameters);
+
+            var wins = Math.Round(winner.ViewsNumber * winner.Rating / 100) + 1;
+            winner.ViewsNumber += 1;
+            winner.ProbabilityWeight = 1 - (Convert.ToDouble(winner.ViewsNumber) / totalViews);
+            winner.Rating = wins * 100 / winner.ViewsNumber;
+
+            var updateParameter = new UpdateOneCatParameters(winner.Id, winner.ViewsNumber, winner.ProbabilityWeight, winner.Rating);
+            winner = await _repository.GetCatAsync<UpdateOneCatParameters>(updateParameter);
+
+            return winner;
+        }
+
+        public async Task<Cat> PatchLoserCat(Cat loser)
         {
             var parameters = new CountViewsParameters();
             int totalViews = await _repository.GetOneAsync<int, CountViewsParameters>(parameters);
 
             loser.ViewsNumber += 1;
-            loser.ProbabilityWeight = (1 - (winner.ViewsNumber / totalViews));
+            loser.ProbabilityWeight = 1 - (Convert.ToDouble(loser.ViewsNumber) / totalViews);
 
-            winner.ViewsNumber += 1;
-            winner.ProbabilityWeight = (1 - (winner.ViewsNumber / totalViews));
-            var wins = winner.ViewsNumber * winner.Rating / 100;
-            winner.Rating = wins * 100 / winner.ViewsNumber;
-
-            return winner;
+            var updateParameter = new UpdateOneCatParameters(loser.Id, loser.ViewsNumber, loser.ProbabilityWeight);
+            loser = await _repository.GetCatAsync<UpdateOneCatParameters>(updateParameter);
+            return loser;
         }
     }
 }

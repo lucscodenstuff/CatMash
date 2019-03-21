@@ -80,7 +80,8 @@ namespace CatMash.API.Controllers
         [HttpPatch("{id}")]
         public async Task<IActionResult> PatchCatsScores(Cat winner, Cat loser)
         {
-            var winnerCat = await _catService.PatchCats(winner, loser);
+            var winnerCat = await _catService.PatchWinnerCat(winner);
+            var loserCat = await _catService.PatchLoserCat(loser);
             if (winnerCat != null)
             {
                 return CreatedAtRoute("GetCat", new { catId = winnerCat.Id}, winnerCat);
