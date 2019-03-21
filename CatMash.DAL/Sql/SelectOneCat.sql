@@ -1,20 +1,21 @@
-IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name = 'SelectOneCat')
-DROP PROCEDURE SelectOneCat
+IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name = 'UpdateOneCat')
+DROP PROCEDURE UpdateOneCat
 GO
 
-CREATE PROCEDURE SelectOneCat (@Id INT)
+CREATE PROCEDURE UpdateOneCat (@Id INT, @views INT, @weight FLOAT, @rating FLOAT = null)
 as
 BEGIN
 SET NOCOUNT ON
-SELECT c.Id, c.CatUrl, c.IsAStar, c.IsTopOne, c.IsAlone, c.Rating,c.ViewsNumber, c.ProbabilityWeight, 0
-FROM Cats c
-WHERE c.Id = @Id
+IF(@rating IS NOT NULL)
+	UPDATE Cats
+	SET ViewsNumber = @views, ProbabilityWeight = @weight , Rating = @rating
+	WHERE Id = @Id;
+ELSE
+	UPDATE Cats
+	SET ViewsNumber = @views, ProbabilityWeight = @weight
+	WHERE Id = @Id;
 
-SELECT f.Id
-FROM Cats c
-JOIN CatsFurs cf on c.ID = cf.CatId
-JOIN FurTypes f on cf.FurTypeId = f.Id
-WHERE c.Id = @Id
+EXEC SelectOneCat @Id;
+
 END
 GO
-EXEC SelectOneCat 3
