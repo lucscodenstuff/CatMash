@@ -34,7 +34,7 @@ namespace CatMash.Business.Services
         public async Task<IEnumerable<Cat>> RetrieveTwoRandomCats(FurTypesEnum? furType = null)
         {
             var parameter = new SelectMultipleCatsParameters(furType: furType);
-            var cats = (await _repository.GetAsync<Cat, SelectMultipleCatsParameters>(parameter)).OrderBy(x => x.ProbabilityWeight);
+            var cats = (await _repository.GetAsync<Cat, SelectMultipleCatsParameters>(parameter)).OrderByDescending(x => x.ProbabilityWeight);
 
             var catOneId = ChoseCatContestant(cats);
             var catTwoId = GetAnotherCat(catOneId, cats);
