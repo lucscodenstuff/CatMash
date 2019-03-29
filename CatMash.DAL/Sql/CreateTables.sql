@@ -21,6 +21,7 @@ CREATE TABLE dbo.Cats
 	IsTopOne BIT NOT NULL,
 	IsAlone BIT NOT NULL,
 	Rating FLOAT NOT NULL,
+	Wins INT NOT NULL,
 	ViewsNumber INT NOT NULL,
 	ProbabilityWeight FLOAT NOT NULL,
 	INDEX IX_IsAlone NONCLUSTERED (IsAlone),

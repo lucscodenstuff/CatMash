@@ -34,19 +34,21 @@ namespace CatMash.Business.Services
         public async Task<IEnumerable<Cat>> RetrieveTwoRandomCats(FurTypesEnum? furType = null)
         {
             var parameter = new SelectMultipleCatsParameters(furType: furType);
-            var cats = (await _repository.GetAsync<Cat, SelectMultipleCatsParameters>(parameter)).OrderByDescending(x => x.ProbabilityWeight);
+            var cats = (await _repository.GetAsync<Cat, SelectMultipleCatsParameters>(parameter)).OrderBy(x => x.ProbabilityWeight);
 
-            var catOneId = ChoseCatContestant(cats);
-            var catTwoId = GetAnotherCat(catOneId, cats);
+            var catOneId = await ChoseCatContestant(cats);
+            var catTwoId = await GetAnotherCat(catOneId, cats);
 
             var parameters = new SelectTwoCatsParameters(catOneId, catTwoId, furType);
             return await _repository.GetAsync<Cat, SelectTwoCatsParameters>(parameters);
         }
 
-        protected int ChoseCatContestant(IEnumerable<Cat> cats)
+        protected async Task<int> ChoseCatContestant(IEnumerable<Cat> cats)
         {
+            var parameters = new GetTotalWeightParameters();
+            double totalWeight = await _repository.GetOneAsync<double, GetTotalWeightParameters>(parameters);
             var random = new Random();
-            double randomValue = random.NextDouble();
+            double randomValue = random.NextDouble() * totalWeight;
             double cumulativeProbability = 0.0;
 
             foreach (var cat in cats)
@@ -60,12 +62,12 @@ namespace CatMash.Business.Services
             return cats.Last().Id;
         }
 
-        internal int GetAnotherCat(int catOneId, IEnumerable<Cat> cats)
+        internal async Task<int> GetAnotherCat(int catOneId, IEnumerable<Cat> cats)
         {
-            int catTwoId = ChoseCatContestant(cats);
+            int catTwoId = await ChoseCatContestant(cats);
             if (catOneId == catTwoId)
             {
-                return GetAnotherCat(catOneId, cats);
+                return await GetAnotherCat(catOneId, cats);
             }
             return catTwoId;
         }
@@ -76,13 +78,14 @@ namespace CatMash.Business.Services
             int totalViews = await _repository.GetOneAsync<int, CountViewsParameters>(parameters);
             if (totalViews == 0)
                 totalViews = 1;
-
-            var wins = Math.Round(winner.ViewsNumber * winner.Rating / 100) + 1;
             winner.ViewsNumber += 1;
-            winner.ProbabilityWeight = 1 - (Convert.ToDouble(winner.ViewsNumber) / totalViews);
-            winner.Rating = wins * 100 / winner.ViewsNumber;
+            winner.Wins += 1;
 
-            var updateParameter = new UpdateOneCatParameters(winner.Id, winner.ViewsNumber, winner.ProbabilityWeight, winner.Rating);
+            winner.ProbabilityWeight = await CalculateWeight(winner.ViewsNumber, totalViews);
+
+            winner.Rating = winner.Wins * 100 / winner.ViewsNumber;
+
+            var updateParameter = new UpdateOneCatParameters(winner.Id, winner.ViewsNumber, winner.ProbabilityWeight, winner.Rating, winner.Wins);
             winner = await _repository.GetCatAsync<UpdateOneCatParameters>(updateParameter);
 
             return winner;
@@ -95,12 +98,30 @@ namespace CatMash.Business.Services
             if (totalViews == 0)
                 totalViews = 1;
 
-            loser.ViewsNumber += 1;
-            loser.ProbabilityWeight = 1 - (Convert.ToDouble(loser.ViewsNumber) / totalViews);
+            loser.ViewsNumber += 1;           
 
-            var updateParameter = new UpdateOneCatParameters(loser.Id, loser.ViewsNumber, loser.ProbabilityWeight);
+            loser.ProbabilityWeight = await CalculateWeight(loser.ViewsNumber, totalViews);
+
+            loser.Rating = loser.Wins * 100 / loser.ViewsNumber;
+
+            var updateParameter = new UpdateOneCatParameters(loser.Id, loser.ViewsNumber, loser.ProbabilityWeight, loser.Rating);
             loser = await _repository.GetCatAsync<UpdateOneCatParameters>(updateParameter);
             return loser;
+        }
+
+        private async Task<double> CalculateWeight(int views, int totalViews)
+        {
+            double theoricProbability = Convert.ToDouble(totalViews) / 100;
+            double theoricWeight = Convert.ToDouble(views) / theoricProbability;
+
+            if (theoricWeight >= 1)
+            {
+                return 0.01;
+            }
+            else
+            {
+                return 1 - theoricWeight;
+            }
         }
     }
 }

@@ -11,12 +11,13 @@ namespace CatMash.Domain.StoredProceduresParameters
         public int Views { get; set; }
         public double Weight { get; set; }
         public double? Rating { get; set; }
+        public int? Wins { get; set; }
         public UpdateOneCatParameters()
         {
             StoredProcedure = StoredProceduresEnum.UpdateOneCat;
         }
 
-        public UpdateOneCatParameters(int id, int views, double weight, double? rating = null)
+        public UpdateOneCatParameters(int id, int views, double weight, double? rating , int? wins = null)
         {
             StoredProcedure = StoredProceduresEnum.UpdateOneCat;
 
@@ -24,6 +25,7 @@ namespace CatMash.Domain.StoredProceduresParameters
             Views = views;
             Weight = weight;
             Rating = rating;
+            Wins = wins;
         }
     }
 }

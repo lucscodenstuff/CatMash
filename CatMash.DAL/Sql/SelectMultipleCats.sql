@@ -7,7 +7,7 @@ as
 BEGIN
 SET NOCOUNT ON
 
-SELECT DISTINCT c.Id, c.CatUrl, c.IsAStar, c.IsTopOne, c.IsAlone, c.Rating, c.ViewsNumber, c.ProbabilityWeight
+SELECT DISTINCT c.Id, c.CatUrl, c.IsAStar, c.IsTopOne, c.IsAlone, c.Rating, c.Wins, c.ViewsNumber, c.ProbabilityWeight
 FROM Cats c
 JOIN CatsFurs cf on c.ID = cf.CatId
 JOIN FurTypes f on cf.FurTypeId = f.Id
