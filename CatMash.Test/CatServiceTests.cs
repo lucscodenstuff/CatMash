@@ -30,7 +30,8 @@ namespace CatMash.Test
                 Id = 1,
                 ViewsNumber = 7,
                 ProbabilityWeight = 0.65,
-                Rating = 42.85
+                Rating = 42.85,
+                Wins = 3
             };
 
             var winnerAfterMatch = new Cat
@@ -38,9 +39,10 @@ namespace CatMash.Test
                 Id = 1,
                 ViewsNumber = 8,
                 ProbabilityWeight = 0.6,
-                Rating = 50
+                Rating = 50,
+                Wins = 4,
             };
-            var updateParameter = new UpdateOneCatParameters(winnerAfterMatch.Id, winnerAfterMatch.ViewsNumber, winnerAfterMatch.ProbabilityWeight, winnerAfterMatch.Rating);
+            var updateParameter = new UpdateOneCatParameters(winnerAfterMatch.Id, winnerAfterMatch.ViewsNumber, winnerAfterMatch.ProbabilityWeight, winnerAfterMatch.Rating, winnerAfterMatch.Wins);
 
             _repository.GetOneAsync<int, CountViewsParameters>(Arg.Any<CountViewsParameters>()).Returns(totalViews);
             _repository.GetCatAsync<UpdateOneCatParameters>(Arg.Any<UpdateOneCatParameters>()).Returns(winnerAfterMatch);
@@ -70,7 +72,7 @@ namespace CatMash.Test
                 ViewsNumber = 8,
                 ProbabilityWeight = 0.6,
             };
-            var updateParameter = new UpdateOneCatParameters(loserAfterMatch.Id, loserAfterMatch.ViewsNumber, loserAfterMatch.ProbabilityWeight);
+            var updateParameter = new UpdateOneCatParameters(loserAfterMatch.Id, loserAfterMatch.ViewsNumber, loserAfterMatch.ProbabilityWeight, loser.Rating);
 
             _repository.GetOneAsync<int, CountViewsParameters>(Arg.Any<CountViewsParameters>()).Returns(totalViews);
             _repository.GetCatAsync<UpdateOneCatParameters>(Arg.Any<UpdateOneCatParameters>()).Returns(loserAfterMatch);

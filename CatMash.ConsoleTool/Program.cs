@@ -47,7 +47,7 @@ namespace CatMash.ConsoleTool
                 connection.Query("CreateTables", commandType: CommandType.StoredProcedure);
 
                 using (var bulkCopy = new SqlBulkCopy(connection))
-                using (var reader = ObjectReader.Create(cats, "CatUrl", "IsAStar", "IsTopOne", "IsAlone", "Rating", "ViewsNumber", "ProbabilityWeight"))
+                using (var reader = ObjectReader.Create(cats, "CatUrl", "IsAStar", "IsTopOne", "IsAlone", "Rating", "Wins", "ViewsNumber", "ProbabilityWeight"))
                 {
                     var catUrlMap = new SqlBulkCopyColumnMapping("CatUrl", "CatUrl");
                     bulkCopy.ColumnMappings.Add(catUrlMap);
@@ -59,6 +59,8 @@ namespace CatMash.ConsoleTool
                     bulkCopy.ColumnMappings.Add(isAloneMap);
                     var ratingMap = new SqlBulkCopyColumnMapping("Rating", "Rating");
                     bulkCopy.ColumnMappings.Add(ratingMap);
+                    var winsMap = new SqlBulkCopyColumnMapping("Wins", "Wins");
+                    bulkCopy.ColumnMappings.Add(winsMap);
                     var viewsNumberMap = new SqlBulkCopyColumnMapping("ViewsNumber", "ViewsNumber");
                     bulkCopy.ColumnMappings.Add(viewsNumberMap);
                     var probabilityWeightMap = new SqlBulkCopyColumnMapping("ProbabilityWeight", "ProbabilityWeight");
@@ -133,7 +135,7 @@ namespace CatMash.ConsoleTool
                     CatUrl = jtoken["url"].ToString(),
                     FurTypes = furs,
                     IsAlone = (items.Count() <= 1),
-                    ProbabilityWeight = 0.99,
+                    ProbabilityWeight = 0.01,
                 });
             }
         }

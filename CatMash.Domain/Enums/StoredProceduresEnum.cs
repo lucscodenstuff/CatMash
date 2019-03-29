@@ -10,6 +10,7 @@ namespace CatMash.Domain.Enums
         SelectMultipleCats,
         SelectTwoCats,
         CountViews,
-        UpdateOneCat
+        UpdateOneCat,
+        GetTotalWeight
     }
 }
