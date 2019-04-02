@@ -28,7 +28,7 @@ namespace CatMash.Business.Services
         public async Task<IEnumerable<Cat>> GetCats(FurTypesEnum? furType = null)
         {
             var parameters = new SelectMultipleCatsParameters(furType: furType);
-            return await _repository.GetAsync<Cat, SelectMultipleCatsParameters>(parameters);
+            return (await _repository.GetAsync<Cat, SelectMultipleCatsParameters>(parameters)).OrderByDescending(x => x.ProbabilityWeight);
         }
 
         public async Task<IEnumerable<Cat>> RetrieveTwoRandomCats(FurTypesEnum? furType = null)
