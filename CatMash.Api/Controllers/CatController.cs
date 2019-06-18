@@ -45,7 +45,7 @@ namespace CatMash.API.Controllers
         }
 
         [HttpGet, Route("{furType}", Name = "GetCatsByFurType")]
-        public async Task<IActionResult> GetCatsByFurType([FromBody]FurTypesEnum furType)
+        public async Task<IActionResult> GetCatsByFurType(FurTypesEnum furType)
         {
             var cats = await _catService.GetCats(furType);
             if (cats.Count() > 0 && cats != null)
@@ -69,7 +69,7 @@ namespace CatMash.API.Controllers
         }
 
         [HttpGet, Route("random/{furType}", Name = "GetTwoRandomCatsByFur")]
-        public async Task<IActionResult> GetTwoRandomCatsByFur([FromBody]FurTypesEnum furType)
+        public async Task<IActionResult> GetTwoRandomCatsByFur(FurTypesEnum furType)
         {
             var cats = await _catService.RetrieveTwoRandomCats(furType);
             if (cats.Count() > 0 && cats != null)
